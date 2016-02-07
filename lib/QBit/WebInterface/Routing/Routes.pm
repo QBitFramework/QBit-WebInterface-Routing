@@ -1,0 +1,548 @@
+package Exception::Routes;
+
+use base qw(Exception);
+
+package QBit::WebInterface::Routing::Routes;
+
+use qbit;
+
+use base qw(QBit::Class);
+
+use URI::Escape qw(uri_escape_utf8);
+
+my %METHODS = (
+    GET     => 1,
+    HEAD    => 2,
+    POST    => 4,
+    PUT     => 8,
+    PATCH   => 16,
+    DELETE  => 32,
+    OPTIONS => 64,
+);
+
+sub init {$_[0]->{'strictly'} //= 1;}
+
+sub get {shift->_generate_route(GET => @_)}
+
+sub head {shift->_generate_route(HEAD => @_)}
+
+sub post {shift->_generate_route(POST => @_)}
+
+sub put {shift->_generate_route(PUT => @_)}
+
+sub patch {shift->_generate_route(PATCH => @_)}
+
+sub delete {shift->_generate_route(DELETE => @_)}
+
+sub options {shift->_generate_route(OPTIONS => @_)}
+
+sub any {
+    my ($self, @args) = @_;
+
+    if (@args == 1) {
+        shift->_generate_route([keys(%METHODS)] => @args);
+    } elsif (@args == 2) {
+        shift->_generate_route(@args);
+    } else {
+        throw Exception::Routes gettext('Expected one or two arguments');
+    }
+}
+
+sub under {
+    my ($self, @args) = @_;
+
+    throw Exception::Routes gettext('Route must begin with "/"') unless $args[0] =~ m/\A\//;
+
+    $args[0] =~ s/\/\z//;
+
+    my $under_route = $self->new(strictly => $self->{'strictly'});
+
+    $under_route->{'__UNDER__'} = {route => $args[0]};
+
+    $under_route->{'__LAST__'} = \$under_route->{'__UNDER__'};
+
+    $under_route->{'__ROUTES__'} = $self->{'__ROUTES__'};
+
+    return $under_route;
+}
+
+sub _generate_route {
+    my ($self, $methods, $url) = @_;
+
+    throw Exception::Routes gettext('Route must begin with "/"') unless $url =~ m/\A\//;
+
+    if (exists($self->{'__UNDER__'})) {
+        $url =~ s/\A\/// if $self->{'__UNDER__'}{'route'} =~ m/\/\z/;
+
+        $url = $self->{'__UNDER__'}{'route'} . $url;
+    }
+
+    throw Exception::Routes gettext('Route "%s" already exists', $url) if exists($self->{'__ROUTES__'}{$url});
+
+    $self->{'__ROUTES__'}{$url} = {
+        methods => $self->_get_methods_bit($methods),
+        %{$self->_get_settings($url)}
+    };
+
+    if (exists($self->{'__UNDER__'})) {
+        $self->{'__ROUTES__'}{$url}{'route_path'} = $self->{'__UNDER__'}{'route_path'}
+          if exists($self->{'__UNDER__'}{'route_path'});
+
+        $self->{'__ROUTES__'}{$url}{'conditions'} = $self->{'__UNDER__'}{'conditions'}
+          if exists($self->{'__UNDER__'}{'conditions'});
+    }
+
+    $self->{'__LAST__'} = \$self->{'__ROUTES__'}{$url};
+
+    return $self;
+}
+
+sub _get_settings {
+    my ($self, $route_name) = @_;
+
+    my @route_levels = split('/', $route_name);
+
+    my @params        = ();
+    my @format_levels = ();
+    foreach my $route_level (@route_levels) {
+        my $regexp_and_format = $self->_get_regexp_and_format_for_level($route_level, \@params);
+        $route_level = $regexp_and_format->{'regexp'};
+        push(@format_levels, $regexp_and_format->{'format'});
+    }
+
+    throw Exception::Routes gettext('Placeholders names can not intersect')
+      if @params > 1 && @{arrays_intersection(@params)};
+
+    my $pattern = @route_levels  ? join('\/', @route_levels)  : '\/';
+    my $format  = @format_levels ? join('/',  @format_levels) : '/';
+
+    if (!$self->{'strictly'}) {
+        $pattern .= '\/' if $pattern !~ m/\/\z/;
+        $format  .= '/'  if $format !~ m/\/\z/;
+    } elsif ($route_name =~ m/\/\z/) {
+        $pattern .= '\/' if $pattern !~ m/\/\z/;
+        $format  .= '/'  if $format !~ m/\/\z/;
+    }
+
+    return {
+        pattern => '\A' . $pattern . '\z',
+        format  => $format,
+        params  => \@params,
+        levels  => scalar(grep {length($_)} @route_levels),
+    };
+}
+
+sub _get_regexp_and_format_for_level {
+    my ($self, $level, $params) = @_;
+
+    my $regexp = '';
+    my $format = '';
+    my $param  = '';
+    my $spec_symbol;
+    my $new_spec_symbol;
+    my $is_end = FALSE;
+
+    foreach my $symbol (split('', $level)) {
+        if ($new_spec_symbol) {
+            if ($symbol eq $new_spec_symbol) {
+                if ($spec_symbol) {
+                    $param .= $symbol;
+                } else {
+                    $regexp .= quotemeta($symbol);
+                    $format .= $symbol;
+                }
+
+                undef($new_spec_symbol);
+
+                next;
+            } else {
+                throw Exception::Routes gettext('You must use "%s" for symbol "%s"', $new_spec_symbol x 2,
+                    $new_spec_symbol);
+            }
+        }
+
+        if ($symbol =~ /[\:#\*]/) {
+            if ($spec_symbol) {
+                if ($symbol eq $spec_symbol) {
+                    if ($is_end) {
+                        $is_end = FALSE;
+
+                        $param .= $symbol;
+                    } elsif (length($param)) {
+                        $is_end = TRUE;
+                    } else {
+                        undef($spec_symbol);
+
+                        $regexp .= quotemeta($symbol);
+                        $format .= $symbol;
+                    }
+                } elsif ($is_end) {
+                    push(@$params, $param);
+                    $param = '';
+
+                    $regexp .= $self->_get_regexp_by_symbol($spec_symbol);
+                    $format .= '%s';
+
+                    $is_end = FALSE;
+
+                    $spec_symbol = $symbol;
+                } else {
+                    $new_spec_symbol = $symbol;
+                }
+            } else {
+                $spec_symbol = $symbol;
+            }
+        } else {
+            if ($is_end) {
+                push(@$params, $param);
+                $param = '';
+
+                $regexp .= $self->_get_regexp_by_symbol($spec_symbol);
+                $format .= '%s';
+
+                $is_end = FALSE;
+
+                undef($spec_symbol);
+
+                $regexp .= quotemeta($symbol);
+                $format .= $symbol;
+            } elsif ($spec_symbol) {
+                $param .= $symbol;
+            } else {
+                $regexp .= quotemeta($symbol);
+                $format .= $symbol;
+            }
+        }
+    }
+
+    throw Exception::Routes gettext('You must use "%s" for symbol "%s"', $new_spec_symbol x 2, $new_spec_symbol)
+      if $new_spec_symbol;
+
+    if ($is_end) {
+        push(@$params, $param);
+        $param = '';
+
+        $regexp .= $self->_get_regexp_by_symbol($spec_symbol);
+        $format .= '%s';
+
+        undef($spec_symbol);
+    }
+
+    throw Exception::Routes gettext('You must use "%s" for symbol "%s"', $spec_symbol x 2, $spec_symbol)
+      if $spec_symbol;
+
+    return {regexp => $regexp, format => $format};
+}
+
+sub _get_regexp_by_symbol {
+    my ($self, $symbol) = @_;
+
+    my $regexp = '';
+
+    if ($symbol eq ':') {
+        # /user/:id:
+        $regexp = '([^\/.]+)';
+    } elsif ($symbol eq '#') {
+        # /user/#name#
+        $regexp = '([^\/]+)';
+    } elsif ($symbol eq '*') {
+        # /user/*name*
+        $regexp = '(.+)';
+    }
+
+    return $regexp;
+}
+
+sub _get_methods_bit {
+    my ($self, $methods) = @_;
+
+    $methods = [$methods] unless ref($methods) eq 'ARRAY';
+
+    my $methods_bit = $METHODS{shift(@$methods)};
+    foreach my $method (@$methods) {
+        $methods_bit |= $METHODS{$method};
+    }
+
+    return $methods_bit;
+}
+
+sub to {
+    my ($self, @args) = @_;
+
+    my $route_path;
+    if (@args == 2 && $args[0] eq 'controller' && ref($args[1]) eq 'CODE') {
+        #to(controller => \&func)
+
+        $route_path = {path => '', cmd => '', controller => $args[1]};
+    } elsif (@args % 2 == 0) {
+        #to(path => <PATH>, cmd => <CMD>)
+
+        $route_path = {hash_transform({@args}, ['path', 'cmd'])};
+    } elsif (@args == 1) {
+        if (ref($args[0]) eq 'CODE') {
+            #to(\&func)
+
+            $route_path = {path => '', cmd => '', handler => $args[0]};
+        } else {
+            #to('path#cmd')
+
+            my ($path, $cmd) = ($args[0] =~ m/\A([a-zA-Z_0-9]+)?#([a-zA-Z_][a-zA-Z_0-9]+)?\z/);
+
+            $route_path = {path => $path // '', cmd => $cmd // ''};
+        }
+    } else {
+        throw Exception::Routes gettext('Unknown format arguments');
+    }
+    
+    if (exists($route_path->{'handler'})) {
+        ${$self->{'__LAST__'}}->{'route_path'} = $route_path;
+    } else {
+        if (exists(${$self->{'__LAST__'}}->{'route_path'})) {
+            my $under_route_path = ${$self->{'__LAST__'}}->{'route_path'};
+            
+            ${$self->{'__LAST__'}}->{'route_path'} = {
+                path => '',
+                cmd => '',
+                controller => sub {
+                    my ($web_interface, $params) = @_;
+                    
+                    if (exists($under_route_path->{'controller'})) {
+                        my ($path, $cmd) = $under_route_path->{'controller'}($web_interface, $params);
+                        
+                        $under_route_path->{'path'} = $path // '';
+                        $under_route_path->{'cmd'} = $cmd // '';
+                    }
+                    
+                    if (exists($route_path->{'controller'})) {
+                        my ($path, $cmd) = $route_path->{'controller'}($web_interface, $params);
+                        
+                        $route_path->{'path'} = $path // '';
+                        $route_path->{'cmd'} = $cmd // '';
+                    }
+                    
+                    $route_path->{'path'} = $under_route_path->{'path'} // '' if $route_path->{'path'} eq '';
+                    $route_path->{'cmd'}  = $under_route_path->{'cmd'}  // '' if $route_path->{'cmd'}  eq '';
+    
+                    return ($route_path->{'path'}, $route_path->{'cmd'});
+                }
+            };
+        } else {
+            ${$self->{'__LAST__'}}->{'route_path'} = $route_path;
+        }
+    }
+
+    return $self;
+}
+
+sub name {
+    my ($self, $name) = @_;
+
+    my @routes_with_this_name =
+      grep {$name eq ($self->{'__ROUTES__'}{$_}{'name'} // '')} keys(%{$self->{'__ROUTES__'}});
+    throw Exception::Routes gettext('Name "%s" for route already exists', $name) if @routes_with_this_name;
+
+    ${$self->{'__LAST__'}}->{'name'} = $name;
+
+    return $self;
+}
+
+sub attrs {
+    my ($self, @attrs) = @_;
+
+    push(@{${$self->{'__LAST__'}}->{'attrs'}}, @attrs);
+
+    return $self;
+}
+
+sub get_current_route {
+    my ($self, $wi) = @_;
+    
+    $wi->{'__EXCEPTION_IN_ROUTING__'} = FALSE;
+
+    my $method = $wi->request->method;
+    my $uri    = $wi->request->uri;
+
+    $uri =~ s/[?#][^\/]*\z//;
+    $uri .= '/' if !$self->{'strictly'} && $uri !~ m/\/\z/;
+
+    my @routes = $self->_get_routes_by_methods($method);
+
+    @routes = sort {$self->_sort_routes($a, $b)} @routes;
+
+    foreach my $route (@routes) {
+        my $pattern = $self->get_route($route)->{'pattern'};
+
+        if (my @values = ($uri =~ m/$pattern/i)) {
+            my %url_params = ();
+
+            if (@{$self->get_route($route)->{'params'}}) {
+                throw Exception::Routes gettext('Different number of parameters')
+                  unless @{$self->get_route($route)->{'params'}} == @values;
+
+                @url_params{@{$self->get_route($route)->{'params'}}} = @values;
+            }
+
+            if (exists($self->get_route($route)->{'conditions'})) {
+                my $ok = TRUE;
+
+                foreach my $condition_name (keys(%{$self->get_route($route)->{'conditions'}})) {
+                    my $check_value;
+                    if (exists($url_params{$condition_name})) {
+                        $check_value = $url_params{$condition_name};
+                    } elsif ($wi->request->can($condition_name)) {
+                        $check_value = $wi->request->$condition_name();
+                    } else {
+                        $check_value = $wi->request->http_header($condition_name);
+                    }
+
+                    my $condition = $self->get_route($route)->{'conditions'}{$condition_name};
+
+                    if (ref($condition) eq 'ARRAY') {
+                        $ok = in_array($check_value, $condition);
+                    } elsif (ref($condition) eq 'Regexp') {
+                        $ok = $check_value =~ $condition;
+                    } elsif (ref($condition) eq 'CODE') {
+                        try {
+                            $ok = $condition->($wi, $check_value, \%url_params);
+                        } catch {
+                            my ($exception) = @_;
+                            
+                            $wi->{'__EXCEPTION_IN_ROUTING__'} = TRUE;
+                            
+                            $wi->exception_handling($exception);
+                        };
+                        
+                        return {} if $wi->{'__EXCEPTION_IN_ROUTING__'};
+                    } else {
+                        throw Exception::Routes gettext('Unknown condition type "%s"', ref($condition));
+                    }
+                    
+                    last unless $ok;
+                }
+                
+                next unless $ok;
+            }
+            
+            my $route_settings = $self->get_route($route);
+
+            throw Exception::Routes gettext('You did not specify the path of the route "%s"', $route)
+              unless defined($route_settings->{'route_path'});
+              
+            if (exists($route_settings->{'route_path'}{'handler'})) {
+                $route_settings->{'handler'} = $route_settings->{'route_path'}{'handler'};
+            } elsif (exists($route_settings->{'route_path'}{'controller'})) {
+                try {
+                    ($route_settings->{'path'}, $route_settings->{'cmd'}) = $route_settings->{'route_path'}{'controller'}($wi, \%url_params);
+                } catch {
+                    my ($exception) = @_;
+                            
+                    $wi->{'__EXCEPTION_IN_ROUTING__'} = TRUE;
+                    
+                    $wi->exception_handling($exception);
+                };
+                
+                return {} if $wi->{'__EXCEPTION_IN_ROUTING__'};
+            } else {
+                $route_settings->{'path'} = $route_settings->{'route_path'}{'path'};
+                $route_settings->{'cmd'} = $route_settings->{'route_path'}{'cmd'};
+            }
+              
+            $route_settings->{'args'} = {map {$_ => $url_params{$_}} sort keys(%url_params)};
+            
+            return $route_settings;
+        }
+    }
+
+    return {};
+}
+
+sub _get_routes_by_methods {
+    my ($self, $method) = @_;
+
+    my @routes = ();
+
+    foreach my $route (keys(%{$self->{'__ROUTES__'}})) {
+        push(@routes, $route) if $METHODS{$method} & $self->{'__ROUTES__'}{$route}{'methods'};
+    }
+
+    return @routes;
+}
+
+sub _sort_routes {
+    my ($self, $f, $s) = @_;
+
+    my $result = $self->get_route($s)->{'levels'} <=> $self->get_route($f)->{'levels'};
+
+    if ($result == 0) {
+        if (@{$self->get_route($f)->{'params'}} && !@{$self->get_route($s)->{'params'}}) {
+            $result = 1;
+        } elsif (!@{$self->get_route($f)->{'params'}} && @{$self->get_route($s)->{'params'}}) {
+            $result = -1;
+        }
+    }
+
+    if ($result == 0) {
+        if (exists($self->get_route($f)->{'conditions'}) && !exists($self->get_route($s)->{'conditions'})) {
+            $result = -1;
+        } elsif (!exists($self->get_route($f)->{'conditions'}) && exists($self->get_route($s)->{'conditions'})) {
+            $result = 1;
+        }
+    }
+
+    return $result;
+}
+
+sub get_route {
+    my ($self, $route) = @_;
+
+    return clone($self->{'__ROUTES__'}{$route} // {});
+}
+
+sub conditions {
+    my ($self, %conditions) = @_;
+
+    if (exists(${$self->{'__LAST__'}}->{'conditions'})) {
+        ${$self->{'__LAST__'}}->{'conditions'} = {%{${$self->{'__LAST__'}}->{'conditions'}}, %conditions};
+    } else {
+        ${$self->{'__LAST__'}}->{'conditions'} = \%conditions;
+    }
+
+    return $self;
+}
+
+sub url_for {
+    my ($self, $name, $params, %vars) = @_;
+
+    my $route_name;
+    foreach (keys(%{$self->{'__ROUTES__'}})) {
+        if (exists($self->{'__ROUTES__'}{$_}{'name'}) && $self->{'__ROUTES__'}{$_}{'name'} eq $name) {
+            $route_name = $_;
+
+            last;
+        }
+    }
+
+    throw Exception::Routes gettex('Route with name "%s" not found', $name) unless $route_name;
+
+    my $route = $self->get_route($route_name);
+
+    my $url;
+    if (@{$route->{'params'}}) {
+        $url = sprintf(
+            $route->{'format'},
+            map {uri_escape_utf8($params->{$_}) // throw Exception::Routes gettext('Expected param "%s"', $_)}
+              @{$route->{'params'}}
+        );
+    } else {
+        $url = $route->{'format'};
+    }
+
+    return $url
+      . (
+        %vars
+        ? '?' . join('&', map {uri_escape_utf8($_) . '=' . uri_escape_utf8($vars{$_})} sort keys(%vars))
+        : ''
+      );
+}
+
+TRUE;
