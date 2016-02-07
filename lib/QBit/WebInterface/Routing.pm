@@ -65,6 +65,7 @@ sub build_response {
 
             {
                 no strict 'refs';
+                no warnings 'redefine';
                 foreach my $method (qw(get_option request response)) {
                     *{"${package}::${method}"} = sub {shift->app->$method(@_)};
                 }
@@ -74,8 +75,10 @@ sub build_response {
             $cmd  = $route->{'cmd'}  // '';
         }
 
-        %params = %{$route->{'args'}};
-    } elsif ($self->get_option('use_base_routing')) {
+        %params = %{$route->{'args'} // {}};
+    }
+    
+    if (!(length($path) || length($cmd)) && $self->get_option('use_base_routing')) {
         ($path, $cmd) = $self->get_cmd();
 
         $cmd = $cmds->{$path}{'__DEFAULT__'}{'name'} if $cmd eq '';
