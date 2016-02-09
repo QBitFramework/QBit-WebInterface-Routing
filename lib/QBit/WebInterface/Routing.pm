@@ -7,6 +7,8 @@ use qbit;
 use QBit::WebInterface::Routing::Routes;
 use QBit::WebInterface::Response;
 
+use base qw(QBit::WebInterface QBit::Application);
+
 eval {require Exception::WebInterface::Controller::CSRF; require Exception::Request::UnknownMethod};
 
 sub import {
@@ -17,10 +19,15 @@ sub import {
 
     $package->SUPER::import(%opts);
 
+    my $package_wi = caller(0);
+
     {
         no strict 'refs';
 
-        *{"${package}::build_response"} = \&build_response;
+        *{"${package_wi}::build_response"}     = \&build_response;
+        *{"${package_wi}::new_routing"}        = \&new_routing;
+        *{"${package_wi}::routing"}            = \&routing;
+        *{"${package_wi}::exception_handling"} = \&exception_handling;
     }
 }
 
@@ -56,20 +63,18 @@ sub build_response {
 
             my $package = $self->get_option('controller_class', 'QBit::WebInterface::Controller');
 
+            my $req_package = $package . '.pm';
+            $req_package =~ s/::/\//g;
+            require $req_package;
+
+            $package->import();
+
             $cmds->{$path}{$cmd} = {
                 'package' => $package,
                 'sub'     => $route->{'handler'},
                 'type'    => 'CMD',
                 'attrs'   => {map {$_ => TRUE} @{$route->{'attrs'} // []}}
             };
-
-            {
-                no strict 'refs';
-                no warnings 'redefine';
-                foreach my $method (qw(get_option request response)) {
-                    *{"${package}::${method}"} = sub {shift->app->$method(@_)};
-                }
-            }
         } else {
             $path = $route->{'path'} // '';
             $cmd  = $route->{'cmd'}  // '';
@@ -77,7 +82,7 @@ sub build_response {
 
         %params = %{$route->{'args'} // {}};
     }
-    
+
     if (!(length($path) || length($cmd)) && $self->get_option('use_base_routing')) {
         ($path, $cmd) = $self->get_cmd();
 

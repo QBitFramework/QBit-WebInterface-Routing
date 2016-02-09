@@ -7,7 +7,7 @@ use qbit;
 
 use Digest::MD5 qw(md5_hex);
 
-use lib::abs qw(../lib ../t_lib ../../QBit-WebInterface/t_lib ../../QBit-Application/lib);
+use lib::abs qw(../lib ../t_lib ../../QBit-WebInterface/t_lib);
 
 use QBit::WebInterface::Test::Request;
 use URI::Escape qw(uri_escape_utf8);
@@ -1407,6 +1407,17 @@ cmp_deeply(
     'GET "/player/settings"'
 );
 
+{
+    no strict 'refs';
+    no warnings 'redefine';
+
+    my @packages_having_name2date = grep {defined(&{$_ . '::name2date'})} (map {s'\.pm''; s'/'::'g; $_} keys(%INC)),
+      'main';
+
+    *{$_ . '::name2date'} = sub {1423339200}
+      foreach @packages_having_name2date;
+}
+
 my $sign =
   md5_hex($wi->get_option('salt', '') . int(name2date('today', oformat => 'sec') / 86400) . 'test_controller/test_cmd');
 
@@ -1422,7 +1433,7 @@ $wi->build_response();
 
 cmp_deeply(
     from_json($wi->response->data),
-    {param => 'value', sign => 'f6b44ecaf505d922ceb5b3003308ca76'},
+    {param => 'value', sign => '2bccd0d6acc74e3796f6b606f36fe23b'},
     'use sub from controller'
 );
 

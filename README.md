@@ -14,7 +14,8 @@ apt-get install libqbit-webinterface-routing-perl
 #### Require:
 
 ```
-use base qw(QBit::WebInterface::Routing QBit::WebInterface::PSGI); #in MyWebInterface.pm
+use base qw(QBit::WebInterface::PSGI QBit::Application); #in MyWebInterface.pm
+use QBit::WebInterface::Routing;
 ```
 
 ### Create and use routes:
