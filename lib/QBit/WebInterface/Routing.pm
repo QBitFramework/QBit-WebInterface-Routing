@@ -14,12 +14,13 @@ eval {require Exception::WebInterface::Controller::CSRF; require Exception::Requ
 sub import {
     my ($package, %opts) = @_;
 
-    die gettext('Use only with QBit::WebInterface or his descendant')
-      unless $package->isa('QBit::WebInterface');
-
     $package->SUPER::import(%opts);
 
     my $package_wi = caller(0);
+
+    die gettext('Use only in QBit::WebInterface and QBit::Application descendant')
+      unless $package_wi->isa('QBit::WebInterface')
+          && $package_wi->isa('QBit::Application');
 
     {
         no strict 'refs';
@@ -63,11 +64,27 @@ sub build_response {
 
             my $package = $self->get_option('controller_class', 'QBit::WebInterface::Controller');
 
-            my $req_package = $package . '.pm';
-            $req_package =~ s/::/\//g;
-            require $req_package;
+            my $imported;
+            foreach my $p (keys(%$cmds)) {
+                foreach my $c (keys(%{$cmds->{$p}})) {
+                    if ($cmds->{$p}{$c}{'package'} eq $package) {
+                        $imported = TRUE;
 
-            $package->import();
+                        last;
+                    }
+                }
+
+                last if $imported;
+            }
+
+            unless ($imported) {
+                my $req_package = $package . '.pm';
+                $req_package =~ s/::/\//g;
+
+                require $req_package;
+
+                $package->import();
+            }
 
             $cmds->{$path}{$cmd} = {
                 'package' => $package,
