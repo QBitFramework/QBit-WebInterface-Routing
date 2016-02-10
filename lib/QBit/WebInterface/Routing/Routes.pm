@@ -8,7 +8,7 @@ use qbit;
 
 use base qw(QBit::Class);
 
-use URI::Escape qw(uri_escape_utf8);
+use URI::Escape qw(uri_escape_utf8 uri_unescape);
 
 my %METHODS = (
     GET     => 1,
@@ -293,38 +293,38 @@ sub to {
     } else {
         throw Exception::Routes gettext('Unknown format arguments');
     }
-    
+
     if (exists($route_path->{'handler'})) {
         ${$self->{'__LAST__'}}->{'route_path'} = $route_path;
     } else {
         if (exists(${$self->{'__LAST__'}}->{'route_path'})) {
             my $under_route_path = ${$self->{'__LAST__'}}->{'route_path'};
-            
+
             ${$self->{'__LAST__'}}->{'route_path'} = {
-                path => '',
-                cmd => '',
+                path       => '',
+                cmd        => '',
                 controller => sub {
                     my ($web_interface, $params) = @_;
-                    
+
                     if (exists($under_route_path->{'controller'})) {
                         my ($path, $cmd) = $under_route_path->{'controller'}($web_interface, $params);
-                        
+
                         $under_route_path->{'path'} = $path // '';
-                        $under_route_path->{'cmd'} = $cmd // '';
+                        $under_route_path->{'cmd'}  = $cmd  // '';
                     }
-                    
+
                     if (exists($route_path->{'controller'})) {
                         my ($path, $cmd) = $route_path->{'controller'}($web_interface, $params);
-                        
+
                         $route_path->{'path'} = $path // '';
-                        $route_path->{'cmd'} = $cmd // '';
+                        $route_path->{'cmd'}  = $cmd  // '';
                     }
-                    
+
                     $route_path->{'path'} = $under_route_path->{'path'} // '' if $route_path->{'path'} eq '';
                     $route_path->{'cmd'}  = $under_route_path->{'cmd'}  // '' if $route_path->{'cmd'}  eq '';
-    
+
                     return ($route_path->{'path'}, $route_path->{'cmd'});
-                }
+                  }
             };
         } else {
             ${$self->{'__LAST__'}}->{'route_path'} = $route_path;
@@ -356,7 +356,7 @@ sub attrs {
 
 sub get_current_route {
     my ($self, $wi) = @_;
-    
+
     $wi->{'__EXCEPTION_IN_ROUTING__'} = FALSE;
 
     my $method = $wi->request->method;
@@ -364,6 +364,8 @@ sub get_current_route {
 
     $uri =~ s/[?#][^\/]*\z//;
     $uri .= '/' if !$self->{'strictly'} && $uri !~ m/\/\z/;
+
+    $uri = fix_utf(uri_unescape($uri));
 
     my @routes = $self->_get_routes_by_methods($method);
 
@@ -404,51 +406,54 @@ sub get_current_route {
                     } elsif (ref($condition) eq 'CODE') {
                         try {
                             $ok = $condition->($wi, $check_value, \%url_params);
-                        } catch {
+                        }
+                        catch {
                             my ($exception) = @_;
-                            
+
                             $wi->{'__EXCEPTION_IN_ROUTING__'} = TRUE;
-                            
+
                             $wi->exception_handling($exception);
                         };
-                        
+
                         return {} if $wi->{'__EXCEPTION_IN_ROUTING__'};
                     } else {
                         throw Exception::Routes gettext('Unknown condition type "%s"', ref($condition));
                     }
-                    
+
                     last unless $ok;
                 }
-                
+
                 next unless $ok;
             }
-            
+
             my $route_settings = $self->get_route($route);
 
             throw Exception::Routes gettext('You did not specify the path of the route "%s"', $route)
               unless defined($route_settings->{'route_path'});
-              
+
             if (exists($route_settings->{'route_path'}{'handler'})) {
                 $route_settings->{'handler'} = $route_settings->{'route_path'}{'handler'};
             } elsif (exists($route_settings->{'route_path'}{'controller'})) {
                 try {
-                    ($route_settings->{'path'}, $route_settings->{'cmd'}) = $route_settings->{'route_path'}{'controller'}($wi, \%url_params);
-                } catch {
+                    ($route_settings->{'path'}, $route_settings->{'cmd'}) =
+                      $route_settings->{'route_path'}{'controller'}($wi, \%url_params);
+                }
+                catch {
                     my ($exception) = @_;
-                            
+
                     $wi->{'__EXCEPTION_IN_ROUTING__'} = TRUE;
-                    
+
                     $wi->exception_handling($exception);
                 };
-                
+
                 return {} if $wi->{'__EXCEPTION_IN_ROUTING__'};
             } else {
                 $route_settings->{'path'} = $route_settings->{'route_path'}{'path'};
-                $route_settings->{'cmd'} = $route_settings->{'route_path'}{'cmd'};
+                $route_settings->{'cmd'}  = $route_settings->{'route_path'}{'cmd'};
             }
-              
+
             $route_settings->{'args'} = {map {$_ => $url_params{$_}} sort keys(%url_params)};
-            
+
             return $route_settings;
         }
     }
