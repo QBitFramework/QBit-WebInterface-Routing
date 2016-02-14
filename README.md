@@ -26,6 +26,12 @@ my $r = $wi->routing();
 ```
 It may take one option "strictly" (TRUE - strict match with url (default) or FALSE). Important for last slash!
 
+In config 'WebInterface.cfg' you can use two options:
+```
+use_base_routing => 1, # also use base QBit::WebInterface routing
+controller_class => 'MyWebInterface::MyController' # use your controller as base controller ./lib/MyWebInterface::MyController.pm
+```
+
 Methods: get, head, post, put, patch, delete, options create route for this requests. Route must begin with "/". All of the following methods define the settings for this route.
 ```
 $r->get('/'); # GET "/"
