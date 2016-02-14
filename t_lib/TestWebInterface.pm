@@ -2,7 +2,7 @@ package TestWebInterface;
 
 use qbit;
 
-use base qw(QBit::WebInterface::Test QBit::Application);
+use base qw(QBit::WebInterface QBit::Application);
 
 use QBit::WebInterface::Routing;
 

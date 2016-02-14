@@ -22,7 +22,7 @@ use QBit::WebInterface::Routing;
 ```
 my $wi = MyWebInterface->new();
 
-my $r = $wi->new_routing();
+my $r = $wi->routing();
 ```
 It may take one option "strictly" (TRUE - strict match with url (default) or FALSE). Important for last slash!
 
@@ -115,7 +115,7 @@ $r->url_for('list', undef, id => 123); # "/user/list?id=123"
 ```
 Method "under" create new object with parent's settings for all routes
 ```
-my $r = $wi->new_routing();
+my $r = $wi->routing();
 
 my $user = $r->under('/user')->to('user#list')->conditions(scheme => qr/^http$/);
 $user->get('/list');
@@ -128,12 +128,33 @@ $user->get('/settings')->to('#settings')->name('settings');
 $profile->get('/view');
 $profile->post('/edit')->to('profile#edit');
 
-$wi->routing($r);
-
 # routes:
 # GET "/user/list"
 # POST "/user/add"
 # GET "/user/settings"
 # GET "/profile/view"
 # POST "/profile/edit
+```
+Method "attrs" set attributes for route
+```
+$r->get('/user/edit/:id:/:sign:')->attrs('FORMCMD', 'SAFE'); # CMD FORMCMD SAFE
+
+$r->attrs('CMD');
+
+# same
+# $r->type('CMD');
+
+$r->attrs('FORMCMD');
+
+# same
+# $r->type('FORM');
+# $r->process_method('_process_form');
+```
+Method "type" set type for route
+```
+$r->get('/user/profile')->type('FORM');
+```
+Method "process_method" set process method for route
+```
+$r->get('/user/profile')->type('FORM')->process_method('_process_form');
 ```

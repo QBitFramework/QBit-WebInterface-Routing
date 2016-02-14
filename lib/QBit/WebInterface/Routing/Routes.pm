@@ -125,10 +125,11 @@ sub _get_settings {
     }
 
     return {
-        pattern => '\A' . $pattern . '\z',
-        format  => $format,
-        params  => \@params,
-        levels  => scalar(grep {length($_)} @route_levels),
+        pattern    => '\A' . $pattern . '\z',
+        format     => $format,
+        params     => \@params,
+        levels     => scalar(grep {length($_)} @route_levels),
+        route_name => $route_name,
     };
 }
 
@@ -349,7 +350,39 @@ sub name {
 sub attrs {
     my ($self, @attrs) = @_;
 
-    push(@{${$self->{'__LAST__'}}->{'attrs'}}, @attrs);
+    foreach my $attr (@attrs) {
+        push(@{${$self->{'__LAST__'}}->{'attrs'}}, $attr);
+
+        if ($attr eq 'CMD') {
+            $self->type('CMD');
+        } elsif ($attr eq 'FORMCMD') {
+            $self->type('FORM');
+            $self->process_method('_process_form');
+        }
+    }
+
+    return $self;
+}
+
+sub type {
+    my ($self, $type) = @_;
+
+    throw Exception::Routes gettext('Type for this route "%s" already exists', ${$self->{'__LAST__'}}->{'route_name'})
+      if defined(${$self->{'__LAST__'}}->{'type'});
+
+    ${$self->{'__LAST__'}}->{'type'} = $type;
+
+    return $self;
+}
+
+sub process_method {
+    my ($self, $process_method) = @_;
+
+    throw Exception::Routes gettext('Process method for this route "%s" already exists',
+        ${$self->{'__LAST__'}}->{'route_name'})
+      if defined(${$self->{'__LAST__'}}->{'process_method'});
+
+    ${$self->{'__LAST__'}}->{'process_method'} = $process_method;
 
     return $self;
 }
@@ -474,23 +507,34 @@ sub _get_routes_by_methods {
 }
 
 sub _sort_routes {
-    my ($self, $f, $s) = @_;
+    my ($self, $first, $second) = @_;
 
-    my $result = $self->get_route($s)->{'levels'} <=> $self->get_route($f)->{'levels'};
+    my $f = $self->get_route($first);
+    my $s = $self->get_route($second);
+
+    my $result = $s->{'levels'} <=> $f->{'levels'};
 
     if ($result == 0) {
-        if (@{$self->get_route($f)->{'params'}} && !@{$self->get_route($s)->{'params'}}) {
+        if (@{$f->{'params'}} && @{$s->{'params'}}) {
+            $result = @{$f->{'params'}} <=> @{$s->{'params'}};
+        } elsif (@{$f->{'params'}} && !@{$s->{'params'}}) {
             $result = 1;
-        } elsif (!@{$self->get_route($f)->{'params'}} && @{$self->get_route($s)->{'params'}}) {
+        } elsif (!@{$f->{'params'}} && @{$s->{'params'}}) {
             $result = -1;
         }
     }
 
     if ($result == 0) {
-        if (exists($self->get_route($f)->{'conditions'}) && !exists($self->get_route($s)->{'conditions'})) {
+        if (exists($f->{'conditions'}) && !exists($s->{'conditions'})) {
             $result = -1;
-        } elsif (!exists($self->get_route($f)->{'conditions'}) && exists($self->get_route($s)->{'conditions'})) {
+        } elsif (!exists($f->{'conditions'}) && exists($s->{'conditions'})) {
             $result = 1;
+        } else {
+            my $f_pattern = $f->{'pattern'};
+            my $s_pattern = $s->{'pattern'};
+
+            l(gettext('Warning: Routes "%s" and "%s" differences only in conditions', $first, $second))
+              if $first =~ /$s_pattern/i && $second =~ /$f_pattern/i;
         }
     }
 

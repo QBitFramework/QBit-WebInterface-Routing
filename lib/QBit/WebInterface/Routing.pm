@@ -26,22 +26,17 @@ sub import {
         no strict 'refs';
 
         *{"${package_wi}::build_response"}     = \&build_response;
-        *{"${package_wi}::new_routing"}        = \&new_routing;
         *{"${package_wi}::routing"}            = \&routing;
         *{"${package_wi}::exception_handling"} = \&exception_handling;
     }
 }
 
-sub new_routing {
+sub routing {
     my ($self, %opts) = @_;
 
-    return QBit::WebInterface::Routing::Routes->new(%opts);
-}
+    $self->{'__ROUTING__'} = QBit::WebInterface::Routing::Routes->new(%opts);
 
-sub routing {
-    my ($self, $routing) = @_;
-
-    return defined($routing) ? $self->{'__ROUTING__'} = $routing : $self->{'__ROUTING__'};
+    return $self->{'__ROUTING__'};
 }
 
 sub build_response {
@@ -54,9 +49,12 @@ sub build_response {
 
     my $cmds = $self->get_cmds();
 
-    my ($path, $cmd, %params);
-    if ($self->routing()) {
-        my $route = $self->routing()->get_current_route($self);
+    my $path   = '';
+    my $cmd    = '';
+    my %params = ();
+
+    if ($self->{'__ROUTING__'}) {
+        my $route = $self->{'__ROUTING__'}->get_current_route($self);
 
         if (exists($route->{'handler'})) {
             $path = '__HANDLER_PATH__';
@@ -64,8 +62,11 @@ sub build_response {
 
             my $package = $self->get_option('controller_class', 'QBit::WebInterface::Controller');
 
-            my $imported;
+            my $imported = $self->{'__IMPORTED__'}{$package};
+
             foreach my $p (keys(%$cmds)) {
+                last if $imported;
+
                 foreach my $c (keys(%{$cmds->{$p}})) {
                     if ($cmds->{$p}{$c}{'package'} eq $package) {
                         $imported = TRUE;
@@ -73,8 +74,6 @@ sub build_response {
                         last;
                     }
                 }
-
-                last if $imported;
             }
 
             unless ($imported) {
@@ -84,13 +83,16 @@ sub build_response {
                 require $req_package;
 
                 $package->import();
+
+                $self->{'__IMPORTED__'}{$package} = TRUE;
             }
 
             $cmds->{$path}{$cmd} = {
-                'package' => $package,
-                'sub'     => $route->{'handler'},
-                'type'    => 'CMD',
-                'attrs'   => {map {$_ => TRUE} @{$route->{'attrs'} // []}}
+                'package'        => $package,
+                'sub'            => $route->{'handler'},
+                'type'           => $route->{'type'} // 'CMD',
+                'process_method' => $route->{'process_method'},
+                'attrs'          => {map {$_ => TRUE} @{$route->{'attrs'} // []}}
             };
         } else {
             $path = $route->{'path'} // '';
@@ -100,13 +102,13 @@ sub build_response {
         %params = %{$route->{'args'} // {}};
     }
 
-    if (!(length($path) || length($cmd)) && $self->get_option('use_base_routing')) {
+    if ($self->get_option('use_base_routing') && !(length($path) || length($cmd))) {
         ($path, $cmd) = $self->get_cmd();
 
         $cmd = $cmds->{$path}{'__DEFAULT__'}{'name'} if $cmd eq '';
         $cmd = '' unless defined($cmd);
     }
-
+    
     $self->set_option(cur_cmd     => $cmd);
     $self->set_option(cur_cmdpath => $path);
 
