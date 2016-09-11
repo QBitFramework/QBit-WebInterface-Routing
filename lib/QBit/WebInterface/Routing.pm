@@ -206,3 +206,33 @@ sub exception_handling {
 }
 
 TRUE;
+
+__END__
+
+=encoding utf8
+
+=head1 Name
+
+QBit::WebInterface::Routing - Class for creating routing for web interface.
+
+=head1 GitHub
+
+https://github.com/QBitFramework/QBit-WebInterface-Routing
+
+=head1 Install
+
+=over
+
+=item *
+
+cpanm QBit::WebInterface::Routing
+
+=item *
+
+apt-get install libqbit-webinterface-routing-perl (http://perlhub.ru/)
+
+=back
+
+For more information. please, see code.
+
+=cut
