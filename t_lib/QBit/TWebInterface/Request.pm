@@ -1,4 +1,4 @@
-package QBit::TestWebInterface::Request;
+package QBit::TWebInterface::Request;
 
 use qbit;
 
