@@ -1,3 +1,9 @@
+libqbit-webinterface-routing-perl (0.002) raring; urgency=low
+
+  * TestWebInterface -> TWebInterface
+
+ -- Igor Sverdlov <igor-sverdlov@mail.ru>  Sat, 08 Oct 2016 16:42:37 +0300
+
 libqbit-webinterface-routing-perl (0.001) raring; urgency=low
 
   * upload to cpan

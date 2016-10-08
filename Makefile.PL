@@ -32,14 +32,14 @@ my %WriteMakefileArgs = (
   },
   "TEST_REQUIRES" => {
     "Digest::MD5" => 0,
-    "QBit::TestWebInterface::Request" => 0,
+    "QBit::TWebInterface::Request" => 0,
+    "TWebInterface" => 0,
     "Test::Deep" => 0,
     "Test::More" => 0,
-    "TestWebInterface" => 0,
     "lib::abs" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.001",
+  "VERSION" => "0.002",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -55,12 +55,12 @@ my %FallbackPrereqs = (
   "POSIX" => 0,
   "QBit::Application" => 0,
   "QBit::Class" => 0,
-  "QBit::TestWebInterface::Request" => 0,
+  "QBit::TWebInterface::Request" => 0,
   "QBit::WebInterface" => 0,
   "QBit::WebInterface::Response" => 0,
+  "TWebInterface" => 0,
   "Test::Deep" => 0,
   "Test::More" => 0,
-  "TestWebInterface" => 0,
   "URI::Escape" => 0,
   "base" => 0,
   "lib::abs" => 0,

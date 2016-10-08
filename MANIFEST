@@ -16,6 +16,6 @@ dist.ini
 lib/QBit/WebInterface/Routing.pm
 lib/QBit/WebInterface/Routing/Routes.pm
 t/qbit-webinterface-routing.t
-t_lib/QBit/TestWebInterface/Request.pm
-t_lib/TestWebInterface.pm
-t_lib/TestWebInterface/Controller/TestController.pm
+t_lib/QBit/TWebInterface/Request.pm
+t_lib/TWebInterface.pm
+t_lib/TWebInterface/Controller/TestController.pm
