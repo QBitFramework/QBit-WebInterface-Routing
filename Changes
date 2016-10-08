@@ -3,8 +3,32 @@ Changes from 2015-10-09 00:00:00 +0000 to present.
 ==================================================
 
 ------------------------------------------
-version 0.002 at 2016-10-08 13:42:37 +0000
+version 0.003 at 2016-10-08 19:47:57 +0000
 ------------------------------------------
+
+  Change: c6f3674d74b146d1561ede03adff0017264ecd40
+  Author: Igor <igor-sverdlov@mail.ru>
+  Date : 2016-10-08 23:47:24 +0000
+
+    Merge pull request #5 from QBitFramework/move_t_lib
+
+    t_lib -> t/lib 
+
+  Change: 51f053194962986575012e60642b8b154c11f089
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-10-08 22:45:11 +0000
+
+    t_lib -> t/lib 
+
+------------------------------------------
+version 0.002 at 2016-10-08 13:43:12 +0000
+------------------------------------------
+
+  Change: 15959a177121506e48db3b839febd5eaca6ff27f
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-10-08 16:43:12 +0000
+
+    Version 0.002 
 
   Change: c5334ad66eb6fe960ef9e7e442a31bd93d122a5c
   Author: Igor <igor-sverdlov@mail.ru>

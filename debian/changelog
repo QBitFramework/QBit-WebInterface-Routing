@@ -1,3 +1,9 @@
+libqbit-webinterface-routing-perl (0.003) raring; urgency=low
+
+  * t_lib -> t/lib
+
+ -- Igor Sverdlov <igor-sverdlov@mail.ru>  Sat, 08 Oct 2016 22:47:57 +0300
+
 libqbit-webinterface-routing-perl (0.002) raring; urgency=low
 
   * TestWebInterface -> TWebInterface

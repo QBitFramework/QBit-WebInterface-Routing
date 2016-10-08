@@ -15,7 +15,7 @@ debian/rules
 dist.ini
 lib/QBit/WebInterface/Routing.pm
 lib/QBit/WebInterface/Routing/Routes.pm
+t/lib/QBit/TWebInterface/Request.pm
+t/lib/TWebInterface.pm
+t/lib/TWebInterface/Controller/TestController.pm
 t/qbit-webinterface-routing.t
-t_lib/QBit/TWebInterface/Request.pm
-t_lib/TWebInterface.pm
-t_lib/TWebInterface/Controller/TestController.pm

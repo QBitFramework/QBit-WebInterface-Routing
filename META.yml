@@ -4,8 +4,8 @@ author:
   - 'Igor Sverdlov <igor-sverdlov@mail.ru>'
 build_requires:
   Digest::MD5: 0
-  QBit::TWebInterface::Request: 0
-  TWebInterface: 0
+  QBit::WebInterface::Controller: 0
+  QBit::WebInterface::Request: 0
   Test::Deep: 0
   Test::More: 0
   lib::abs: 0
@@ -33,4 +33,4 @@ requires:
   base: 0
   qbit: 0
   strict: 0
-version: 0.002
+version: 0.003
