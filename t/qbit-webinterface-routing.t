@@ -7,7 +7,7 @@ use qbit;
 
 use Digest::MD5 qw(md5_hex);
 
-use lib::abs qw(../lib ../t_lib);
+use lib::abs qw(../lib ./lib);
 
 use QBit::TWebInterface::Request;
 use URI::Escape qw(uri_escape_utf8);
