@@ -1,4 +1,4 @@
-package TestWebInterface::Controller::TestController;
+package TWebInterface::Controller::TestController;
 
 use qbit;
 

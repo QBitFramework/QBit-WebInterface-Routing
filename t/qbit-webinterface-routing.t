@@ -9,10 +9,10 @@ use Digest::MD5 qw(md5_hex);
 
 use lib::abs qw(../lib ../t_lib);
 
-use QBit::TestWebInterface::Request;
+use QBit::TWebInterface::Request;
 use URI::Escape qw(uri_escape_utf8);
 
-use TestWebInterface;
+use TWebInterface;
 
 {
     no strict 'refs';
@@ -28,7 +28,7 @@ use TestWebInterface;
 sub get_request {
     my (%opts) = @_;
 
-    my $request = QBit::TestWebInterface::Request->new(
+    my $request = QBit::TWebInterface::Request->new(
         path  => $opts{'path'},
         cmd   => $opts{'cmd'},
         query => $opts{'params'}
@@ -46,7 +46,7 @@ sub get_request {
     return $request;
 }
 
-my $wi = new_ok('TestWebInterface');
+my $wi = new_ok('TWebInterface');
 
 my $r = $wi->routing();
 
