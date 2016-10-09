@@ -43,13 +43,13 @@ $r->any('/'); # GET/POST/PUT/... "/"
 $r->any([qw(GET PATCH)] => "/"); #only GET and PATCH "/"
 ```
 Placeholders.
-  - standart placeholders - :name: ~ ([^\/\\.]+)
-  - relaxed placeholders - #name# ~ ([^\/]+)
+  - standart placeholders - !name! ~ ([^\/\\.]+)
+  - relaxed placeholders - :name: ~ ([^\/]+)
   - wildcard placeholders - \*name\* ~ (.+)
 ```
-$r->get('/user/:id:'); # GET "/user/123" ~ qr{/user/([^/\.]+)}
+$r->get('/user/!id!'); # GET "/user/123" ~ qr{/user/([^/\.]+)}
 
-$r->get('/user/#login#'); # GET "/user/LOGIN" ~ qr{/user/([^/]+)}
+$r->get('/user/:login:'); # GET "/user/LOGIN" ~ qr{/user/([^/]+)}
 
 $r->get('/user/*login*'); # GET "/user/LOGIN" ~ qr{/user/(.+)}
 
