@@ -17,8 +17,6 @@ my %WriteMakefileArgs = (
   "NAME" => "QBit::WebInterface::Routing",
   "PREREQ_PM" => {
     "Exception" => 0,
-    "Exception::Request::UnknownMethod" => 0,
-    "Exception::WebInterface::Controller::CSRF" => 0,
     "File::Path" => 0,
     "POSIX" => 0,
     "QBit::Application" => 0,
@@ -39,7 +37,7 @@ my %WriteMakefileArgs = (
     "lib::abs" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.005",
+  "VERSION" => "0.006",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -49,8 +47,6 @@ my %WriteMakefileArgs = (
 my %FallbackPrereqs = (
   "Digest::MD5" => 0,
   "Exception" => 0,
-  "Exception::Request::UnknownMethod" => 0,
-  "Exception::WebInterface::Controller::CSRF" => 0,
   "File::Path" => 0,
   "POSIX" => 0,
   "QBit::Application" => 0,

@@ -18,4 +18,5 @@ lib/QBit/WebInterface/Routing/Routes.pm
 t/lib/QBit/TWebInterface/Request.pm
 t/lib/TWebInterface.pm
 t/lib/TWebInterface/Controller/TestController.pm
+t/lib/TestTimeLog.pm
 t/qbit-webinterface-routing.t

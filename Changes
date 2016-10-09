@@ -3,8 +3,32 @@ Changes from 2015-10-10 00:00:00 +0000 to present.
 ==================================================
 
 ------------------------------------------
-version 0.005 at 2016-10-09 15:33:57 +0000
+version 0.006 at 2016-10-09 22:33:01 +0000
 ------------------------------------------
+
+  Change: 7366d28abb263b056d2ab1ee406b52658f6c4de6
+  Author: Igor <igor-sverdlov@mail.ru>
+  Date : 2016-10-10 02:31:55 +0000
+
+    Merge pull request #8 from QBitFramework/fix_dependency
+
+    fix dependency 
+
+  Change: ec5400f0b1dde24264933aaf9dbd058e3dba216d
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-10-10 01:29:28 +0000
+
+    fix dependency 
+
+------------------------------------------
+version 0.005 at 2016-10-09 15:34:07 +0000
+------------------------------------------
+
+  Change: a1a42414c54241376f3c2b0efa489e5ef229ea7b
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-10-09 18:34:07 +0000
+
+    Version 0.005 
 
   Change: 2ce86327aa1154ebbb81ec08f14cc95ea7da41c5
   Author: Igor <igor-sverdlov@mail.ru>
