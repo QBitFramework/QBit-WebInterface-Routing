@@ -144,9 +144,9 @@ sub _get_regexp_and_format_for_level {
     my $is_end = FALSE;
 
     foreach my $symbol (split('', $level)) {
-        if ($new_spec_symbol) {
+        if (defined($new_spec_symbol)) {
             if ($symbol eq $new_spec_symbol) {
-                if ($spec_symbol) {
+                if (defined($spec_symbol)) {
                     $param .= $symbol;
                 } else {
                     $regexp .= quotemeta($symbol);
@@ -162,8 +162,8 @@ sub _get_regexp_and_format_for_level {
             }
         }
 
-        if ($symbol =~ /[\:#\*]/) {
-            if ($spec_symbol) {
+        if ($symbol =~ /[!\:\*]/) {
+            if (defined($spec_symbol)) {
                 if ($symbol eq $spec_symbol) {
                     if ($is_end) {
                         $is_end = FALSE;
@@ -207,7 +207,7 @@ sub _get_regexp_and_format_for_level {
 
                 $regexp .= quotemeta($symbol);
                 $format .= $symbol;
-            } elsif ($spec_symbol) {
+            } elsif (defined($spec_symbol)) {
                 $param .= $symbol;
             } else {
                 $regexp .= quotemeta($symbol);
@@ -240,10 +240,10 @@ sub _get_regexp_by_symbol {
 
     my $regexp = '';
 
-    if ($symbol eq ':') {
+    if ($symbol eq '!') {
         # /user/:id:
         $regexp = '([^\/.]+)';
-    } elsif ($symbol eq '#') {
+    } elsif ($symbol eq ':') {
         # /user/#name#
         $regexp = '([^\/]+)';
     } elsif ($symbol eq '*') {
