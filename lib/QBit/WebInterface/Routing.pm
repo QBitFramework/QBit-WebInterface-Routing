@@ -1,3 +1,11 @@
+package Exception::Routing;
+
+use base qw(Exception);
+
+package Exception::Routing::CSRF;
+
+use base qw(Exception::Routing);
+
 package QBit::WebInterface::Routing;
 
 use POSIX qw(strftime setlocale LC_TIME);
@@ -8,8 +16,6 @@ use QBit::WebInterface::Routing::Routes;
 use QBit::WebInterface::Response;
 
 use base qw(QBit::WebInterface QBit::Application);
-
-eval {require Exception::WebInterface::Controller::CSRF; require Exception::Request::UnknownMethod};
 
 sub import {
     my ($package, %opts) = @_;
@@ -108,7 +114,7 @@ sub build_response {
         $cmd = $cmds->{$path}{'__DEFAULT__'}{'name'} if $cmd eq '';
         $cmd = '' unless defined($cmd);
     }
-    
+
     $self->set_option(cur_cmd     => $cmd);
     $self->set_option(cur_cmdpath => $path);
 
@@ -133,7 +139,7 @@ sub build_response {
 
                 unless ($controller->{'__BREAK_CMD__'}) {
                     if ($controller->attrs()->{'SAFE'}) {
-                        throw Exception::WebInterface::Controller::CSRF gettext('CSRF has been detected')
+                        throw Exception::Routing::CSRF gettext('CSRF has been detected')
                           unless $controller->check_anti_csrf_token(
                             $self->request->param(sign => $params{'sign'} // ''),
                             url => $self->get_option('cur_cmdpath') . '/' . $self->get_option('cur_cmd'));
