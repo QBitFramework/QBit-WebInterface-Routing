@@ -53,9 +53,9 @@ $r->get('/user/:login:'); # GET "/user/LOGIN" ~ qr{/user/([^/]+)}
 
 $r->get('/user/*login*'); # GET "/user/LOGIN" ~ qr{/user/(.+)}
 
-$r->get('/user/:name:-:surname:'); # GET "/user/vasya-pupkin"
+$r->get('/user/!name!-!surname!'); # GET "/user/vasya-pupkin"
 # special symbols in url. Use double symbols ("#" -> "##")
-$r->get('/user/::spec_url##'); # GET "/user/:spec_url#"
+$r->get('/user/::spec_url!!'); # GET "/user/:spec_url!"
 ```
 In Controller you can get this value from %opts
 ```
@@ -67,11 +67,11 @@ sub test_controller : CMD {
 ```
 Method "conditions". For placeholders, data from request methods (method, uri, scheme, server_name, server_port, remote_addr, query_string) and variables from method http_header (user_agent, ...)
 ```
-$r->get('/user/:id:')->conditions(id => qr/\A[1-9][0-9]*\z/); # GET "/user/123" but NO for GET "/user/vasya"
+$r->get('/user/!id!')->conditions(id => qr/\A[1-9][0-9]*\z/); # GET "/user/123" but NO for GET "/user/vasya"
 
-$r->get('/user/:login:')->conditions(login => [qw(bender)]); # GET "/user/bender" but NO for GET "/user/vasya"
+$r->get('/user/!login!')->conditions(login => [qw(bender)]); # GET "/user/bender" but NO for GET "/user/vasya"
 
-$r->get('/user/:id:/settings')->conditions(id => sub {
+$r->get('/user/!id!/settings')->conditions(id => sub {
     my ($web_interface, $check_values, $params) = @_;
     # WebInterface [obj], check value [string], all params from url [hash]
     return $check_value == 123
@@ -87,7 +87,7 @@ $r->get('/user')->to(path => 'user', cmd => 'list');
 
 $r->get('/user/list')->to('user#list');
 
-$r->get('/user/:login:')->to(controller => sub {
+$r->get('/user/!login!')->to(controller => sub {
     my ($web_interface, $params) = @_:
     # WebInterface [obj], all params from url [hash]
     if ($params->{'login'} eq 'bender') {
@@ -107,7 +107,7 @@ Method "name" set name for route
 ```
 $r->get('/user/authorization')->name('authorization');
 
-$r->get('/user/:id:/settings')->name('settings');
+$r->get('/user/!id!/settings')->name('settings');
 
 $r->get('/user/list')->name('list');
 ```
@@ -143,7 +143,7 @@ $profile->post('/edit')->to('profile#edit');
 ```
 Method "attrs" set attributes for route
 ```
-$r->get('/user/edit/:id:/:sign:')->attrs('FORMCMD', 'SAFE'); # CMD FORMCMD SAFE
+$r->get('/user/edit/!id!/!sign!')->attrs('FORMCMD', 'SAFE'); # CMD FORMCMD SAFE
 
 $r->attrs('CMD');
 
