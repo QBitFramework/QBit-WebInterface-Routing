@@ -1,10 +1,34 @@
 ==================================================
-Changes from 2015-10-09 00:00:00 +0000 to present.
+Changes from 2015-10-10 00:00:00 +0000 to present.
 ==================================================
 
 ------------------------------------------
-version 0.003 at 2016-10-08 19:47:57 +0000
+version 0.004 at 2016-10-09 15:26:34 +0000
 ------------------------------------------
+
+  Change: 47f77ca088db6b836acf44e363f9504021702f1e
+  Author: Igor <igor-sverdlov@mail.ru>
+  Date : 2016-10-09 19:25:24 +0000
+
+    Merge pull request #6 from QBitFramework/change_placeholders
+
+    change placeholders : -> !, # -> : 
+
+  Change: 6e12737ed20697b795e9bf90e19d3ef6ddf2747d
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-10-09 17:36:18 +0000
+
+    change placeholders : -> !, # -> : 
+
+------------------------------------------
+version 0.003 at 2016-10-08 19:48:07 +0000
+------------------------------------------
+
+  Change: f6c13dc4c1a881b2b31fbf1eddb92d449a1962f3
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-10-08 22:48:07 +0000
+
+    Version 0.003 
 
   Change: c6f3674d74b146d1561ede03adff0017264ecd40
   Author: Igor <igor-sverdlov@mail.ru>
