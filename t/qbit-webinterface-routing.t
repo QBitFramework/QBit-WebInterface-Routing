@@ -176,48 +176,8 @@ $r->any([qw(GET POST)] => '/user/fio/!id!')->attrs('FORMCMD', 'SAFE')->name('fio
 
 cmp_deeply(
     $r->{'__ROUTES__'},
-    {
-        '/user/without_last_slash' => {
-            'name'       => 'user__without_last_slash',
-            'format'     => '/user/without_last_slash',
-            'params'     => [],
-            'route_path' => {
-                'cmd'  => 'without_last_slash',
-                'path' => 'user'
-            },
-            'methods'    => 1,
-            'pattern'    => '\A\/user\/without_last_slash\z',
-            'levels'     => 2,
-            'route_name' => '/user/without_last_slash',
-        },
-        '/user/!action!/!id!' => {
-            'format'     => '/user/%s/%s',
-            'name'       => 'user__action',
-            'route_path' => {
-                'path' => 'user',
-                'cmd'  => 'action'
-            },
-            'params'     => ['action', 'id'],
-            'pattern'    => '\A\/user\/([^\/.]+)\/([^\/.]+)\z',
-            'methods'    => 4,
-            'levels'     => 3,
-            'route_name' => '/user/!action!/!id!',
-        },
-        '/user/scheme' => {
-            'name'       => 'user__sheme',
-            'format'     => '/user/scheme',
-            'pattern'    => '\A\/user\/scheme\z',
-            'methods'    => 1,
-            'levels'     => 2,
-            'conditions' => {'scheme' => qr/https/},
-            'route_path' => {
-                'path' => 'user',
-                'cmd'  => 'scheme'
-            },
-            'params'     => [],
-            'route_name' => '/user/scheme',
-        },
-        '/' => {
+    [
+        {
             'levels'     => 0,
             'format'     => '/',
             'name'       => 'user_defualt',
@@ -230,114 +190,20 @@ cmp_deeply(
             'pattern'    => '\A\/\z',
             'route_name' => '/',
         },
-        '/user/!id!/settings' => {
-            'route_path' => {
-                'cmd'  => 'settings',
-                'path' => 'user'
-            },
-            'params'     => ['id'],
-            'methods'    => 1,
-            'pattern'    => '\A\/user\/([^\/.]+)\/settings\z',
-            'format'     => '/user/%s/settings',
-            'name'       => 'user__settings',
-            'conditions' => {'id' => ignore()},
-            'levels'     => 3,
-            'route_name' => '/user/!id!/settings',
-        },
-        '/user/mobile' => {
-            'conditions' => {'user_agent' => qr/IEMobile/},
-            'levels'     => 2,
-            'pattern'    => '\A\/user\/mobile\z',
-            'methods'    => 1,
-            'name'       => 'user__mobile',
-            'format'     => '/user/mobile',
-            'route_path' => {
-                'cmd'  => 'mobile',
-                'path' => 'user'
-            },
+        {
+            'name'       => 'user__without_last_slash',
+            'format'     => '/user/without_last_slash',
             'params'     => [],
-            'route_name' => '/user/mobile',
-        },
-        '/user/relaxed/:name:' => {
             'route_path' => {
-                'path' => 'user',
-                'cmd'  => 'relaxed_name'
-            },
-            'params'     => ['name'],
-            'pattern'    => '\A\/user\/relaxed\/([^\/]+)\z',
-            'methods'    => 1,
-            'name'       => 'user__relaxed_name',
-            'format'     => '/user/relaxed/%s',
-            'levels'     => 3,
-            'route_name' => '/user/relaxed/:name:',
-        },
-        '/user/add' => {
-            'levels'     => 2,
-            'format'     => '/user/add',
-            'name'       => 'user__add',
-            'route_path' => {
-                'cmd'  => 'add',
+                'cmd'  => 'without_last_slash',
                 'path' => 'user'
             },
-            'methods'    => 4,
-            'params'     => [],
-            'pattern'    => '\A\/user\/add\z',
-            'route_name' => '/user/add',
-        },
-        '/user/info**' => {
+            'methods'    => 1,
+            'pattern'    => '\A\/user\/without_last_slash\z',
             'levels'     => 2,
-            'route_path' => {
-                'cmd'  => 'info',
-                'path' => 'user'
-            },
-            'methods'    => 127,
-            'params'     => [],
-            'pattern'    => '\A\/user\/info\*\z',
-            'name'       => 'user__info',
-            'format'     => '/user/info*',
-            'route_name' => '/user/info**',
+            'route_name' => '/user/without_last_slash',
         },
-        '/user/!id!' => {
-            'name'       => 'user__profile',
-            'format'     => '/user/%s',
-            'methods'    => 1,
-            'pattern'    => '\A\/user\/([^\/.]+)\z',
-            'levels'     => 2,
-            'conditions' => {'id' => qr/\A[1-9][0-9]*\z/},
-            'params'     => ['id'],
-            'route_path' => {
-                'path' => 'user',
-                'cmd'  => 'profile'
-            },
-            'route_name' => '/user/!id!',
-        },
-        '/user/standart/!name!' => {
-            'levels'     => 3,
-            'name'       => 'user__standart_name',
-            'format'     => '/user/standart/%s',
-            'methods'    => 1,
-            'route_path' => {
-                'cmd'  => 'standart_name',
-                'path' => 'user'
-            },
-            'pattern'    => '\A\/user\/standart\/([^\/.]+)\z',
-            'params'     => ['name'],
-            'route_name' => '/user/standart/!name!',
-        },
-        '/user/wildcard/*name*' => {
-            'format'     => '/user/wildcard/%s',
-            'name'       => 'user__wildcard_name',
-            'params'     => ['name'],
-            'route_path' => {
-                'path' => 'user',
-                'cmd'  => 'wildcard_name'
-            },
-            'pattern'    => '\A\/user\/wildcard\/(.+)\z',
-            'methods'    => 1,
-            'levels'     => 3,
-            'route_name' => '/user/wildcard/*name*',
-        },
-        '/user/with_last_slash/' => {
+        {
             'levels'     => 2,
             'route_path' => {
                 'cmd'  => 'with_last_slash',
@@ -350,20 +216,98 @@ cmp_deeply(
             'name'       => 'user__with_last_slash',
             'route_name' => '/user/with_last_slash/',
         },
-        '/user/!login!' => {
-            'conditions' => {'login' => ['bender']},
+        {
             'levels'     => 2,
+            'format'     => '/user/add',
+            'name'       => 'user__add',
             'route_path' => {
-                'cmd'  => 'bender',
+                'cmd'  => 'add',
                 'path' => 'user'
             },
-            'pattern'    => '\A\/user\/([^\/.]+)\z',
-            'params'     => ['login'],
-            'methods'    => 8,
-            'format'     => '/user/%s',
-            'route_name' => '/user/!login!',
+            'methods'    => 4,
+            'params'     => [],
+            'pattern'    => '\A\/user\/add\z',
+            'route_name' => '/user/add',
         },
-        '/user/!name!-!surname!' => {
+        {
+            'levels'     => 2,
+            'route_path' => {
+                'cmd'  => 'info',
+                'path' => 'user'
+            },
+            'methods'    => 127,
+            'params'     => [],
+            'pattern'    => '\A\/user\/info\*\z',
+            'name'       => 'user__info',
+            'format'     => '/user/info*',
+            'route_name' => '/user/info**',
+        },
+        {
+            'levels'     => 2,
+            'route_path' => {
+                'path' => 'user',
+                'cmd'  => 'edit'
+            },
+            'pattern'    => '\A\/user\/edit\z',
+            'methods'    => 28,
+            'params'     => [],
+            'format'     => '/user/edit',
+            'name'       => 'user__edit',
+            'route_name' => '/user/edit',
+        },
+        {
+            'levels'     => 3,
+            'name'       => 'user__standart_name',
+            'format'     => '/user/standart/%s',
+            'methods'    => 1,
+            'route_path' => {
+                'cmd'  => 'standart_name',
+                'path' => 'user'
+            },
+            'pattern'    => '\A\/user\/standart\/([^\/.]+)\z',
+            'params'     => ['name'],
+            'route_name' => '/user/standart/!name!',
+        },
+        {
+            'route_path' => {
+                'path' => 'user',
+                'cmd'  => 'relaxed_name'
+            },
+            'params'     => ['name'],
+            'pattern'    => '\A\/user\/relaxed\/([^\/]+)\z',
+            'methods'    => 1,
+            'name'       => 'user__relaxed_name',
+            'format'     => '/user/relaxed/%s',
+            'levels'     => 3,
+            'route_name' => '/user/relaxed/:name:',
+        },
+        {
+            'format'     => '/user/wildcard/%s',
+            'name'       => 'user__wildcard_name',
+            'params'     => ['name'],
+            'route_path' => {
+                'path' => 'user',
+                'cmd'  => 'wildcard_name'
+            },
+            'pattern'    => '\A\/user\/wildcard\/(.+)\z',
+            'methods'    => 1,
+            'levels'     => 3,
+            'route_name' => '/user/wildcard/*name*',
+        },
+        {
+            'format'     => '/user/%s/%s',
+            'name'       => 'user__action',
+            'route_path' => {
+                'path' => 'user',
+                'cmd'  => 'action'
+            },
+            'params'     => ['action', 'id'],
+            'pattern'    => '\A\/user\/([^\/.]+)\/([^\/.]+)\z',
+            'methods'    => 4,
+            'levels'     => 3,
+            'route_name' => '/user/!action!/!id!',
+        },
+        {
             'levels'     => 2,
             'name'       => 'user__name_surname',
             'format'     => '/user/%s-%s',
@@ -377,20 +321,76 @@ cmp_deeply(
             'pattern'    => '\A\/user\/([^\/.]+)\-([^\/.]+)\z',
             'route_name' => '/user/!name!-!surname!',
         },
-        '/user/edit' => {
+        {
+            'name'       => 'user__profile',
+            'format'     => '/user/%s',
+            'methods'    => 1,
+            'pattern'    => '\A\/user\/([^\/.]+)\z',
             'levels'     => 2,
+            'conditions' => {'id' => qr/\A[1-9][0-9]*\z/},
+            'params'     => ['id'],
             'route_path' => {
                 'path' => 'user',
-                'cmd'  => 'edit'
+                'cmd'  => 'profile'
             },
-            'pattern'    => '\A\/user\/edit\z',
-            'methods'    => 28,
-            'params'     => [],
-            'format'     => '/user/edit',
-            'name'       => 'user__edit',
-            'route_name' => '/user/edit',
+            'route_name' => '/user/!id!',
         },
-        '/user/fio/!id!' => {
+        {
+            'route_path' => {
+                'cmd'  => 'settings',
+                'path' => 'user'
+            },
+            'params'     => ['id'],
+            'methods'    => 1,
+            'pattern'    => '\A\/user\/([^\/.]+)\/settings\z',
+            'format'     => '/user/%s/settings',
+            'name'       => 'user__settings',
+            'conditions' => {'id' => ignore()},
+            'levels'     => 3,
+            'route_name' => '/user/!id!/settings',
+        },
+        {
+            'name'       => 'user__sheme',
+            'format'     => '/user/scheme',
+            'pattern'    => '\A\/user\/scheme\z',
+            'methods'    => 1,
+            'levels'     => 2,
+            'conditions' => {'scheme' => qr/https/},
+            'route_path' => {
+                'path' => 'user',
+                'cmd'  => 'scheme'
+            },
+            'params'     => [],
+            'route_name' => '/user/scheme',
+        },
+        {
+            'conditions' => {'user_agent' => qr/IEMobile/},
+            'levels'     => 2,
+            'pattern'    => '\A\/user\/mobile\z',
+            'methods'    => 1,
+            'name'       => 'user__mobile',
+            'format'     => '/user/mobile',
+            'route_path' => {
+                'cmd'  => 'mobile',
+                'path' => 'user'
+            },
+            'params'     => [],
+            'route_name' => '/user/mobile',
+        },
+        {
+            'conditions' => {'login' => ['bender']},
+            'levels'     => 2,
+            'route_path' => {
+                'cmd'  => 'bender',
+                'path' => 'user'
+            },
+            'pattern'    => '\A\/user\/([^\/.]+)\z',
+            'params'     => ['login'],
+            'methods'    => 8,
+            'format'     => '/user/%s',
+            'route_name' => '/user/!login!',
+        },
+        {
             'pattern'        => '\\A\\/user\\/fio\\/([^\\/.]+)\\z',
             'process_method' => '_process_form',
             'params'         => ['id'],
@@ -407,7 +407,7 @@ cmp_deeply(
             'route_name' => '/user/fio/!id!',
             'name'       => 'fio'
         },
-    },
+    ],
     'Routes'
 );
 
@@ -1346,8 +1346,21 @@ $r2->get('/user/with_last_slash/')->to(path => 'user', cmd => 'with_last_slash')
 
 cmp_deeply(
     $r2->{'__ROUTES__'},
-    {
-        '/user/with_last_slash/' => {
+    [
+        {
+            'route_path' => {
+                'cmd'  => 'without_last_slash',
+                'path' => 'user'
+            },
+            'params'     => [],
+            'pattern'    => '\A\/user\/without_last_slash\/\z',
+            'methods'    => 1,
+            'format'     => '/user/without_last_slash/',
+            'name'       => 'user__without_last_slash',
+            'levels'     => 2,
+            'route_name' => '/user/without_last_slash',
+        },
+        {
             'levels'     => 2,
             'name'       => 'user__with_last_slash',
             'format'     => '/user/with_last_slash/',
@@ -1360,20 +1373,7 @@ cmp_deeply(
             'pattern'    => '\A\/user\/with_last_slash\/\z',
             'route_name' => '/user/with_last_slash/',
         },
-        '/user/without_last_slash' => {
-            'route_path' => {
-                'cmd'  => 'without_last_slash',
-                'path' => 'user'
-            },
-            'params'     => [],
-            'pattern'    => '\A\/user\/without_last_slash\/\z',
-            'methods'    => 1,
-            'format'     => '/user/without_last_slash/',
-            'name'       => 'user__without_last_slash',
-            'levels'     => 2,
-            'route_name' => '/user/without_last_slash',
-        }
-    },
+    ],
     'Routes strictly => FALSE'
 );
 
@@ -1524,34 +1524,8 @@ $r2->get('/data/file.css')->to(
 
 cmp_deeply(
     $r2->{'__ROUTES__'},
-    {
-        '/data/file.css' => {
-            'levels'     => 2,
-            'methods'    => 1,
-            'pattern'    => '\\A\\/data\\/file\\.css\\/\\z',
-            'route_path' => {
-                'cmd'     => '',
-                'path'    => '',
-                'handler' => ignore()
-            },
-            'params'     => [],
-            'format'     => '/data/file.css/',
-            'route_name' => '/data/file.css',
-        },
-        '/user/with_last_slash/' => {
-            'name'       => 'user__with_last_slash',
-            'params'     => [],
-            'methods'    => 1,
-            'levels'     => 2,
-            'route_path' => {
-                'path' => 'user',
-                'cmd'  => 'with_last_slash'
-            },
-            'format'     => '/user/with_last_slash/',
-            'pattern'    => '\A\/user\/with_last_slash\/\z',
-            'route_name' => '/user/with_last_slash/',
-        },
-        '/user/without_last_slash' => {
+    [
+        {
             'params'     => [],
             'name'       => 'user__without_last_slash',
             'methods'    => 1,
@@ -1564,19 +1538,20 @@ cmp_deeply(
             'levels'     => 2,
             'route_name' => '/user/without_last_slash',
         },
-        '/test_controller/test_cmd/!param!/!sign!' => {
-            'params'     => ['param', 'sign'],
-            'format'     => '/test_controller/test_cmd/%s/%s/',
-            'pattern'    => '\\A\\/test_controller\\/test_cmd\\/([^\\/.]+)\\/([^\\/.]+)\\/\\z',
-            'route_path' => {
-                'path' => 'test_controller',
-                'cmd'  => 'test_cmd'
-            },
-            'levels'     => 4,
+        {
+            'name'       => 'user__with_last_slash',
+            'params'     => [],
             'methods'    => 1,
-            'route_name' => '/test_controller/test_cmd/!param!/!sign!',
+            'levels'     => 2,
+            'route_path' => {
+                'path' => 'user',
+                'cmd'  => 'with_last_slash'
+            },
+            'format'     => '/user/with_last_slash/',
+            'pattern'    => '\A\/user\/with_last_slash\/\z',
+            'route_name' => '/user/with_last_slash/',
         },
-        '/player/settings' => {
+        {
             'methods'    => 1,
             'params'     => [],
             'conditions' => {
@@ -1589,9 +1564,49 @@ cmp_deeply(
             'levels'     => 2,
             'route_name' => '/player/settings',
         },
-    },
+        {
+            'params'     => ['param', 'sign'],
+            'format'     => '/test_controller/test_cmd/%s/%s/',
+            'pattern'    => '\\A\\/test_controller\\/test_cmd\\/([^\\/.]+)\\/([^\\/.]+)\\/\\z',
+            'route_path' => {
+                'path' => 'test_controller',
+                'cmd'  => 'test_cmd'
+            },
+            'levels'     => 4,
+            'methods'    => 1,
+            'route_name' => '/test_controller/test_cmd/!param!/!sign!',
+        },
+        {
+            'levels'     => 2,
+            'methods'    => 1,
+            'pattern'    => '\\A\\/data\\/file\\.css\\/\\z',
+            'route_path' => {
+                'cmd'     => '',
+                'path'    => '',
+                'handler' => ignore()
+            },
+            'params'     => [],
+            'format'     => '/data/file.css/',
+            'route_name' => '/data/file.css',
+        },
+    ],
     'Routes player'
 );
+
+$error = FALSE;
+try {
+    $player->get('/settings')->to('#settings');
+}
+catch {
+    $error = TRUE;
+
+    is(shift->message, gettext('Route "%s" already exists', '/player/settings'), 'Corrected error');
+}
+finally {
+    ok($error, 'throw exception');
+};
+
+$player->post('/settings')->to('#save_settings');
 
 $wi->request(
     get_request(
