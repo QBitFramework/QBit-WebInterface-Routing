@@ -1,10 +1,34 @@
 ==================================================
-Changes from 2015-10-10 00:00:00 +0000 to present.
+Changes from 2015-12-05 00:00:00 +0000 to present.
 ==================================================
 
 ------------------------------------------
-version 0.006 at 2016-10-09 22:33:01 +0000
+version 0.007 at 2016-12-04 16:59:28 +0000
 ------------------------------------------
+
+  Change: ac1ab5a0c3da253045691bda2eceb97bd63005da
+  Author: Igor <igor-sverdlov@mail.ru>
+  Date : 2016-12-04 19:58:48 +0000
+
+    Merge pull request #9 from QBitFramework/same_routing
+
+    two routes with difference methods 
+
+  Change: 2636366b576d0b14fdc3d6a1770ba2c2830cbb94
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-12-04 19:07:15 +0000
+
+    two routes with difference methods 
+
+------------------------------------------
+version 0.006 at 2016-10-09 22:33:36 +0000
+------------------------------------------
+
+  Change: 4c46f19f97bf6485a2c2eef56c31e1cf77d3a3bf
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-10-10 01:33:36 +0000
+
+    Version 0.006 
 
   Change: 7366d28abb263b056d2ab1ee406b52658f6c4de6
   Author: Igor <igor-sverdlov@mail.ru>
