@@ -77,22 +77,30 @@ sub _generate_route {
         $url = $self->{'__UNDER__'}{'route'} . $url;
     }
 
-    throw Exception::Routes gettext('Route "%s" already exists', $url) if exists($self->{'__ROUTES__'}{$url});
+    my $methods_bits = $self->_get_methods_bit($methods);
 
-    $self->{'__ROUTES__'}{$url} = {
-        methods => $self->_get_methods_bit($methods),
+    my $route = {
+        methods => $methods_bits,
         %{$self->_get_settings($url)}
     };
 
     if (exists($self->{'__UNDER__'})) {
-        $self->{'__ROUTES__'}{$url}{'route_path'} = $self->{'__UNDER__'}{'route_path'}
+        $route->{'route_path'} = $self->{'__UNDER__'}{'route_path'}
           if exists($self->{'__UNDER__'}{'route_path'});
 
-        $self->{'__ROUTES__'}{$url}{'conditions'} = $self->{'__UNDER__'}{'conditions'}
+        $route->{'conditions'} = $self->{'__UNDER__'}{'conditions'}
           if exists($self->{'__UNDER__'}{'conditions'});
     }
 
-    $self->{'__LAST__'} = \$self->{'__ROUTES__'}{$url};
+    foreach my $r (@{$self->{'__ROUTES__'} // []}) {
+        if ($route->{'route_name'} eq $r->{'route_name'} && $route->{'methods'} & $r->{'methods'}) {
+            throw Exception::Routes gettext('Route "%s" already exists', $url);
+        }
+    }
+
+    push(@{$self->{'__ROUTES__'}}, $route);
+
+    $self->{'__LAST__'} = \$route;
 
     return $self;
 }
@@ -241,10 +249,10 @@ sub _get_regexp_by_symbol {
     my $regexp = '';
 
     if ($symbol eq '!') {
-        # /user/:id:
+        # /user/!id!
         $regexp = '([^\/.]+)';
     } elsif ($symbol eq ':') {
-        # /user/#name#
+        # /user/:name:
         $regexp = '([^\/]+)';
     } elsif ($symbol eq '*') {
         # /user/*name*
@@ -339,7 +347,8 @@ sub name {
     my ($self, $name) = @_;
 
     my @routes_with_this_name =
-      grep {$name eq ($self->{'__ROUTES__'}{$_}{'name'} // '')} keys(%{$self->{'__ROUTES__'}});
+      grep {$name eq ($_->{'name'} // '')} @{$self->{'__ROUTES__'}};
+
     throw Exception::Routes gettext('Name "%s" for route already exists', $name) if @routes_with_this_name;
 
     ${$self->{'__LAST__'}}->{'name'} = $name;
@@ -405,22 +414,22 @@ sub get_current_route {
     @routes = sort {$self->_sort_routes($a, $b)} @routes;
 
     foreach my $route (@routes) {
-        my $pattern = $self->get_route($route)->{'pattern'};
+        my $pattern = $route->{'pattern'};
 
         if (my @values = ($uri =~ m/$pattern/i)) {
             my %url_params = ();
 
-            if (@{$self->get_route($route)->{'params'}}) {
+            if (@{$route->{'params'}}) {
                 throw Exception::Routes gettext('Different number of parameters')
-                  unless @{$self->get_route($route)->{'params'}} == @values;
+                  unless @{$route->{'params'}} == @values;
 
-                @url_params{@{$self->get_route($route)->{'params'}}} = @values;
+                @url_params{@{$route->{'params'}}} = @values;
             }
 
-            if (exists($self->get_route($route)->{'conditions'})) {
+            if (exists($route->{'conditions'})) {
                 my $ok = TRUE;
 
-                foreach my $condition_name (keys(%{$self->get_route($route)->{'conditions'}})) {
+                foreach my $condition_name (keys(%{$route->{'conditions'}})) {
                     my $check_value;
                     if (exists($url_params{$condition_name})) {
                         $check_value = $url_params{$condition_name};
@@ -430,7 +439,7 @@ sub get_current_route {
                         $check_value = $wi->request->http_header($condition_name);
                     }
 
-                    my $condition = $self->get_route($route)->{'conditions'}{$condition_name};
+                    my $condition = $route->{'conditions'}{$condition_name};
 
                     if (ref($condition) eq 'ARRAY') {
                         $ok = in_array($check_value, $condition);
@@ -459,7 +468,7 @@ sub get_current_route {
                 next unless $ok;
             }
 
-            my $route_settings = $self->get_route($route);
+            my $route_settings = clone($route);
 
             throw Exception::Routes gettext('You did not specify the path of the route "%s"', $route)
               unless defined($route_settings->{'route_path'});
@@ -499,18 +508,15 @@ sub _get_routes_by_methods {
 
     my @routes = ();
 
-    foreach my $route (keys(%{$self->{'__ROUTES__'}})) {
-        push(@routes, $route) if $METHODS{$method} & $self->{'__ROUTES__'}{$route}{'methods'};
+    foreach my $route (@{$self->{'__ROUTES__'}}) {
+        push(@routes, $route) if $METHODS{$method} & $route->{'methods'};
     }
 
     return @routes;
 }
 
 sub _sort_routes {
-    my ($self, $first, $second) = @_;
-
-    my $f = $self->get_route($first);
-    my $s = $self->get_route($second);
+    my ($self, $f, $s) = @_;
 
     my $result = $s->{'levels'} <=> $f->{'levels'};
 
@@ -533,18 +539,16 @@ sub _sort_routes {
             my $f_pattern = $f->{'pattern'};
             my $s_pattern = $s->{'pattern'};
 
-            l(gettext('Warning: Routes "%s" and "%s" differences only in conditions', $first, $second))
-              if $first =~ /$s_pattern/i && $second =~ /$f_pattern/i;
+            l(
+                gettext(
+                    'Warning: Routes "%s" and "%s" differences only in conditions', $f->{'route_name'},
+                    $s->{'route_name'}
+                )
+             ) if $f->{'route_name'} =~ /$s_pattern/i && $s->{'route_name'} =~ /$f_pattern/i;
         }
     }
 
     return $result;
-}
-
-sub get_route {
-    my ($self, $route) = @_;
-
-    return clone($self->{'__ROUTES__'}{$route} // {});
 }
 
 sub conditions {
@@ -562,18 +566,16 @@ sub conditions {
 sub url_for {
     my ($self, $name, $params, %vars) = @_;
 
-    my $route_name;
-    foreach (keys(%{$self->{'__ROUTES__'}})) {
-        if (exists($self->{'__ROUTES__'}{$_}{'name'}) && $self->{'__ROUTES__'}{$_}{'name'} eq $name) {
-            $route_name = $_;
+    my $route;
+    foreach my $r (@{$self->{'__ROUTES__'}}) {
+        if (($r->{'name'} // '') eq $name) {
+            $route = $r;
 
             last;
         }
     }
 
-    throw Exception::Routes gettex('Route with name "%s" not found', $name) unless $route_name;
-
-    my $route = $self->get_route($route_name);
+    throw Exception::Routes gettex('Route with name "%s" not found', $name) unless $route;
 
     my $url;
     if (@{$route->{'params'}}) {
