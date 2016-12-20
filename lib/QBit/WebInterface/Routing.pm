@@ -1,11 +1,3 @@
-package Exception::Routing;
-
-use base qw(Exception);
-
-package Exception::Routing::CSRF;
-
-use base qw(Exception::Routing);
-
 package QBit::WebInterface::Routing;
 
 use POSIX qw(strftime setlocale LC_TIME);
@@ -139,7 +131,7 @@ sub build_response {
 
                 unless ($controller->{'__BREAK_CMD__'}) {
                     if ($controller->attrs()->{'SAFE'}) {
-                        throw Exception::Routing::CSRF gettext('CSRF has been detected')
+                        throw Exception::WebInterface::Controller::CSRF gettext('CSRF has been detected')
                           unless $controller->check_anti_csrf_token(
                             $self->request->param(sign => $params{'sign'} // ''),
                             url => $self->get_option('cur_cmdpath') . '/' . $self->get_option('cur_cmd'));

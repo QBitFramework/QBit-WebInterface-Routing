@@ -1,12 +1,10 @@
-package Exception::Routes;
-
-use base qw(Exception);
-
 package QBit::WebInterface::Routing::Routes;
 
 use qbit;
 
 use base qw(QBit::Class);
+
+use Exception::Routes;
 
 use URI::Escape qw(uri_escape_utf8 uri_unescape);
 
