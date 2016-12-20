@@ -1,10 +1,34 @@
 ==================================================
-Changes from 2015-12-05 00:00:00 +0000 to present.
+Changes from 2015-12-21 00:00:00 +0000 to present.
 ==================================================
 
 ------------------------------------------
-version 0.007 at 2016-12-04 16:59:28 +0000
+version 0.008 at 2016-12-20 05:03:41 +0000
 ------------------------------------------
+
+  Change: c72cf3519e9f6f62e6828739a7a7c3f4f9dc3561
+  Author: Igor <igor-sverdlov@mail.ru>
+  Date : 2016-12-20 08:03:03 +0000
+
+    Merge pull request #10 from QBitFramework/exceptions
+
+    exceptions 
+
+  Change: 8dc9d46411dac82474afd5d2b70d36d90ef429f4
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-12-20 08:01:33 +0000
+
+    exceptions 
+
+------------------------------------------
+version 0.007 at 2016-12-04 16:59:53 +0000
+------------------------------------------
+
+  Change: 8f71832e3dec8fbe495cedca9b6991062c54eb52
+  Author: Igor Sverdlov <igor-sverdlov@mail.ru>
+  Date : 2016-12-04 19:59:53 +0000
+
+    Version 0.007 
 
   Change: ac1ab5a0c3da253045691bda2eceb97bd63005da
   Author: Igor <igor-sverdlov@mail.ru>

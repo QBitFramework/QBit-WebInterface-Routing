@@ -13,6 +13,7 @@ debian/control
 debian/copyright
 debian/rules
 dist.ini
+lib/Exception/Routes.pm
 lib/QBit/WebInterface/Routing.pm
 lib/QBit/WebInterface/Routing/Routes.pm
 t/lib/QBit/TWebInterface/Request.pm
