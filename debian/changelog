@@ -1,3 +1,9 @@
+libqbit-webinterface-routing-perl (0.009) raring; urgency=low
+
+  * fix typo
+
+ -- Igor Sverdlov <igor-sverdlov@mail.ru>  Sat, 29 Apr 2017 19:43:01 +0300
+
 libqbit-webinterface-routing-perl (0.008) raring; urgency=low
 
   * exceptions
