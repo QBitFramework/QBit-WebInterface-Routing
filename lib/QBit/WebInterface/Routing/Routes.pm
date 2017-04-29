@@ -573,7 +573,7 @@ sub url_for {
         }
     }
 
-    throw Exception::Routes gettex('Route with name "%s" not found', $name) unless $route;
+    throw Exception::Routes gettext('Route with name "%s" not found', $name) unless $route;
 
     my $url;
     if (@{$route->{'params'}}) {
