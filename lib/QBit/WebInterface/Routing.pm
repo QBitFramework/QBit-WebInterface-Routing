@@ -18,7 +18,7 @@ sub import {
 
     die gettext('Use only in QBit::WebInterface and QBit::Application descendant')
       unless $package_wi->isa('QBit::WebInterface')
-          && $package_wi->isa('QBit::Application');
+      && $package_wi->isa('QBit::Application');
 
     {
         no strict 'refs';
@@ -94,7 +94,7 @@ sub build_response {
             };
         } else {
             $path = $route->{'path'} // '';
-            $cmd  = $route->{'cmd'}  // '';
+            $cmd  = $route->{'cmd'} // '';
         }
 
         %params = %{$route->{'args'} // {}};
@@ -217,6 +217,10 @@ QBit::WebInterface::Routing - Class for creating routing for web interface.
 
 https://github.com/QBitFramework/QBit-WebInterface-Routing
 
+=head1 Deprecated
+
+See L<QBit::WebInterface|https://github.com/QBitFramework/QBit-WebInterface>
+
 =head1 Install
 
 =over
@@ -224,10 +228,6 @@ https://github.com/QBitFramework/QBit-WebInterface-Routing
 =item *
 
 cpanm QBit::WebInterface::Routing
-
-=item *
-
-apt-get install libqbit-webinterface-routing-perl (http://perlhub.ru/)
 
 =back
 
